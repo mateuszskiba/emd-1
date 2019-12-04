@@ -10,13 +10,16 @@ output:
 
 ## Podsumowanie analizy
 
-### Zależności między zmiennymi
 Najsilniejsze korelacje wystąpiły pomiędzy parami zmiennych: (Dostępność planktonu Calanus helgolandicus gatunku 1; Zagęszczenie widłonogów), (Natężenie połowów w regionie; Łączne roczne natężenie połowów w regionie), (Dostępność planktonu Calanus helgolandicus gatunku 2; Zagęszczenie widłonogów gatunku 2), (Łączna liczba ryb złowionych w ramach połowu; Łączne roczne natężenie połowów w regionie). Oznacza to, że najprawdopodobniej pozbycie się jednej ze zmiennych z każdej z par pozwoliłoby na uproszczenie modelu, redukcję efektu przeuczenia i skrócenie czasu uczenia.
+
+W latach 1958 - 1978 można zauważyć stabilny wzrost rozmiaru śledzia. W okolicy roku 1978 śledź osiągał swoje najwieksze rozmiary tj. ok. 27,2 cm. Jednakże w po roku 1978 zanotowano kilka gwałtownych spadków długości śledzia. Ostatecznie długość śledzia wyraźnie spadała aż do roku 2018, do poziomu ok 23,5cm. 
+
+W wyniku przeprowadzone analizy okazało się, że najlepsze dopasowanie modelu osiągane jest dla ... zmiennych. Najistotniejszymi zmiennymi w modelu okazały się ..., ..., ..., ..., ....
 
 # Kod i wyniki analizy
 
 ## Załadowanie bibliotek
-```{r setup, results='hide'}
+```{r setup, results="hide"}
 library(zoo)
 library(dplyr)
 library(corrgram)
@@ -75,12 +78,16 @@ Inne spostrzeżenia:
 
 
 ```{r correlations}
-corrgram(herrings[, -1], order=TRUE, lower.panel=panel.shade,
+corrgram(herrings, order=TRUE, lower.panel=panel.shade,
          upper.panel=panel.cor, text.panel=panel.txt,
          main="Herrings - Variables Correlations")
 ```
 
 ## Animacja
+
+Animacja pokazuje jak na przestrzeniu 60 lat zmieniał się rozmiar trzyletniego śledzia oceanicznego wyławianego w Europie.
+Można zauważyć, iż od 1958 do ok. 1978 roku długość śledzia wzrastała, by w roku 1978 osiągnąć swoją maksymalną wartość tj. ok 27,2cm. Następnie odnotowano trzy istotne spadki długości śledzia w okolicy lat 1984, 1990 i 1997. Długośc ta długość ta systematycznie spadała, by w 2018 roku osiągnąć wartość ok 23,5cm.
+
 
 ### Przygotowanie danych
 ```{r animations_data}
@@ -90,7 +97,7 @@ herrings_animation <-
   select(yearn, length) %>%
   group_by(yearn) %>%
   summarize(length = mean(length))%>%
-  mutate(yearn=ceiling(yearn/(max(yearn)/60)))
+  mutate(yearn=(2018 - (60 - ceiling(yearn/(max(yearn)/60)))))
 ```
 
 ### Stworzenie animacji
@@ -149,6 +156,10 @@ rsq(regFloatLength, test$length)
 ```
 
 ## Analiza ważności atrybutów
+Analiza ważności atrybutów została przeprowadzona z użyciem metody walidacji krzyżowej. Na podstawie wyników analizy można zauważyć, że najlepsze dopasowanie do danych (R^2) jest osiągnięte, gdy model posiada ... zmiennych. Natomiast najmniejszy RMSE jest osiągany przy zastosowniu ... zmiennych. 
+Ponadto, najistotniejszymi zmiennymi w modelu okazały się ..., ..., ..., ..., ....
+
+
 ```{R variables_importance}
 ctrl <- rfeControl(functions = lmFuncs,
                    method = "repeatedcv",
