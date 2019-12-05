@@ -11,6 +11,7 @@ install.packages('data.table')
 install.packages('gganimate')
 install.packages('gifski')
 install.packages('png')
+install.packages('e1071')
 
 
 # LIBRARIES
@@ -27,6 +28,9 @@ library(gganimate)
 library(data.table)
 library(gifski)
 library(png)
+library(caret)
+library(pROC)
+set.seed(23)
 
 
 # READ DATA
@@ -39,7 +43,7 @@ herrings <-
 
 
 # Correlations
-corrgram(herrings, order=TRUE, lower.panel=panel.shade,
+corrgram(herrings[, -1], order=TRUE, lower.panel=panel.shade,
          upper.panel=panel.cor, text.panel=panel.txt,
          main="Herrings - Variables Correlations")
 
@@ -52,7 +56,6 @@ herrings_animation <-
   group_by(yearn) %>%
   summarize(length = mean(length))%>%
   mutate(yearn=ceiling(yearn/(max(yearn)/60)))
-
 
 # CREATE ANIMATIONS
 a <- 
@@ -69,3 +72,53 @@ a <-
   transition_reveal(yearn)
 
 animate(a, fps = 10, duration = 10, renderer = gifski_renderer())
+
+# =========== LOGISTIC REGRESSION ===============
+
+# Dataset division
+idx <- createDataPartition(herrings$length, times=2, p=0.25, list=FALSE)
+idxTest <- idx[,1]
+idxVal <- idx[,2]
+
+train <- herrings[-c(idxTest, idxVal),]
+test <- herrings[idxTest,]
+val <- herrings[idxVal,]
+
+# Graphs
+ggplot(mapping=aes(alpha=0.4)) + 
+  geom_density(aes(length, fill="train"), train) + 
+  geom_density(aes(length, fill="test"), test) + 
+  geom_density(aes(length, fill="val"), val)
+
+# Trainig
+fit <- train(length ~ .,
+             data = train,
+             method = "lm")
+fit
+
+# Predicting
+regFloatLength <- predict(fit,
+                          newdata = test)
+regLength <- round(regFloatLength)
+
+# Confusion matrix
+confusionMatrix(data = factor(regLength, levels=min(test$length):max(test$length)),
+                factor(test$length, levels=min(test$length):max(test$length)))
+
+# R^2
+rsq <- function (x, y) cor(x, y) ^ 2
+rsq(regFloatLength, test$length)
+
+
+# VARIABLE IMPORTANCE ANALYSIS
+ctrl <- rfeControl(functions = lmFuncs,
+                   method = "repeatedcv",
+                   repeats = 10,
+                   verbose = FALSE)
+
+lmProfile <- rfe(train[,-2],
+                 train$length,
+                 sizes=c(1:15),
+                 rfeControl = ctrl)
+
+lmProfile
