@@ -6,6 +6,7 @@ output:
   html_document:
     toc: true
     toc_depth: 2
+    keep_md: true
 ---
 
 ## Podsumowanie analizy
@@ -16,7 +17,7 @@ Najsilniejsze korelacje wystąpiły pomiędzy parami zmiennych: (Dostępność p
 # Kod i wyniki analizy
 
 ## Załadowanie bibliotek
-```{r setup, results='hide'}
+```{r setup, results="hide"}
 library(zoo)
 library(dplyr)
 library(corrgram)
@@ -45,22 +46,111 @@ set.seed(23)
 herrings_raw_top <- read.csv(file='https://raw.githubusercontent.com/mateuszskiba/emd-1/master/sledzie.csv?token=AFU5A4AIIMA5QAADFMACAFS55ZYIY', header=TRUE, sep=',', na.strings='?', nrows=100)
 classes <- sapply(herrings_raw_top, class)
 herrings_raw <- read.csv(file='https://raw.githubusercontent.com/mateuszskiba/emd-1/master/sledzie.csv?token=AFU5A4AIIMA5QAADFMACAFS55ZYIY', header=TRUE, sep=',', na.strings='?', colClasses=classes)
+```
+
+## Przetworzenie brakujących danych
+```{R lacking_data}
 herrings <- 
   herrings_raw %>%
   do(na.locf(.))
 ```
 
-## Przetworzenie brakujących danych
-```{R lacking_data}
+Z uwagi na to, że w zbiorze danych wpisy z jednego połowu występują po sobie, a więc zawierają większość tych samych parametrów, dlatego zdecydowano się uzupełniać brakujące wartości bazując na wartościach wpisu powyżej. W związku z tym, pierwszy wpis został usunięty, gdyż nie posiadał on wpisu, na podstawie którego możnaby uzupełnić jego brakującą wartość.
+```{R lacking_data_head}
+head(herrings)
 ```
 
 ## Rozmiar zbioru i podstawowe statystyki
 ```{R basics}
+dim(herrings)
+summary(herrings)
 ```
 
+W zbiorze mamy 52581 wpisów, zawierających 15 kolumn. Rozkład wartości i najważniejsze statystyki przedstawia wynik wywołania funkcji summary.
+
 ## Szczegółowa analiza wartości atrybutów
-```{R detailed_analysis}
+```{R detailed_analysis1}
+ggplot(herrings, aes(x=length)) + geom_histogram(binwidth=1, colour="black", fill="white")
 ```
+
+Histogram rozkładu długości w zbiorze.
+```{R detailed_analysis2}
+herrings_sst <- herrings %>%
+  group_by(sst) %>%
+  summarise_all(list(mean))
+
+ggplot(
+  herrings_sst,
+  aes(x=sst,
+      y=length,
+      color=nao
+  )
+) +
+geom_point() + geom_smooth(method='lm')
+```
+
+W celu sprawdzenia zależności pomiędzy zmiennymi a długością śledzia pogrupowano wpisy po wartości danego parametru (w tym przypadku temperatury przy powierzchni wody [°C]), następnie zwizualizowano punkty na wykresie jednocześnie dodając krzywą będącą najbliższym modelem liniowym tej zależności. Na tym wykresie zawarte zostały dwie wartości (drugą jest oscylacja północnoatlantycka [mb]), które mają największy wpływ na długość.
+```{R detailed_analysis3}
+
+herrings_nao <- herrings %>%
+  group_by(nao) %>%
+  summarise_all(list(mean))
+
+ggplot(
+  herrings_nao,
+  aes(x=nao,
+      y=length
+  )
+) +
+geom_point() + geom_smooth(method='lm')
+```
+
+Zależność długości od oscylacji północnoatlantyckiej [mb]. Na wykresie można zobaczyć pewną relację pomiędzy zmiennymi.
+```{R detailed_analysis4}
+herrings_fbar <- herrings %>%
+  group_by(fbar) %>%
+  summarise_all(list(mean))
+
+ggplot(
+  herrings_fbar,
+  aes(x=fbar,
+      y=length
+  )
+) +
+geom_point() + geom_smooth(method='lm')
+```
+
+Zależność długości od natężenia połowu w regionie [ułamek pozostawionego narybku].
+```{R detailed_analysis5}
+herrings_chel1 <- herrings %>%
+  group_by(chel1) %>%
+  summarise_all(list(mean))
+
+ggplot(
+  herrings_chel1,
+  aes(x=chel1,
+      y=length
+  )
+) +
+geom_point() + geom_smooth(method='lm')
+```
+
+Zależność długości od dostępności planktonu Calanus helgolandicus gat. 1. Duże znaczenie w przypadku ustalenia kierunku nachylenia prostej miały obserwacje odstające, znajdujące się po prawej stronie wykresu. Zaobserwować można jedynie słabą zależność.
+```{R detailed_analysis6}
+herrings_sal <- herrings %>%
+  group_by(sal) %>%
+  summarise_all(list(min))
+
+ggplot(
+  herrings_sal,
+  aes(x=sal,
+      y=length
+  )
+) +
+geom_point() + geom_smooth(method='lm')
+```
+
+Zależność długości od poziomu zasolenia wody [Knudsen ppt]. Podobnie jak powyżej, regresja liniowa nie wyjaśnia zależności zmiennych w sposób satysfakcjonujący.
 
 ## Korelacje między zmiennymi
 Na poniższej grafice można zauważyć, iż długość śledzia jest najsilniej skorelowana z takimi zmiennymi jak: Temperatura wody (**-0.45**); Oscylacja północnoatlantycka (**-0.26**), Natężenie połowów w regionie (**0.25**) oraz Dostępność planktonu Calanus helgolandicus gatunek 2 (**0.22**).
@@ -111,7 +201,8 @@ a <-
 animate(a, fps = 10, duration = 10, renderer = gifski_renderer())
 ```
 
-## Regresja logistyczna
+## Próba stworzenia regresora
+### Regresja logistyczna
 ```{r lin_reg}
 # Podział zbiorów
 idx <- createDataPartition(herrings$length, times=2, p=0.25, list=FALSE)
@@ -148,6 +239,33 @@ rsq <- function (x, y) cor(x, y) ^ 2
 rsq(regFloatLength, test$length)
 ```
 
+### Generalized Boosted Regression Modelling (GBM) z 10-krotną walidacją krzyżową
+```{R gbm1,  results="hide"}
+ctrl <- trainControl(
+           method = "repeatedcv",
+           number = 10,
+           repeats = 10)
+fit <- train(length ~ .,
+             data = train,
+             trControl = ctrl,
+             method = "gbm")
+```
+```{R gbm2}
+fit
+```
+
+Trafność klasyfikacji osiągnęła wartość 51%.
+```{R gbm3}
+regFloatLength <- predict(fit,
+                      newdata = test)
+regLength <- round(regFloatLength)
+confusionMatrix(data = factor(regLength, levels=min(regLength):max(regLength)),
+                factor(test$length, levels=min(regLength):max(regLength)))
+rsq(regFloatLength, test$length)
+rsq(regLength, test$length)
+```
+
+Trafność klasyfikacji w przypadkach zaokrąglania predykcji zmiennoprzecinkowych do liczb całkowitych oraz braku zaokrąglania.
 ## Analiza ważności atrybutów
 ```{R variables_importance}
 ctrl <- rfeControl(functions = lmFuncs,
