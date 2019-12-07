@@ -11,8 +11,15 @@ output:
 
 ## Podsumowanie analizy
 
-### Zależności między zmiennymi
+Histogram długości śledzia w zależności od liczby ryb jest bliski rozkładowi normalnemu. Po zwizualizowaniu pozostałych zmiennych od długości widać, że zależności wykazują głównie temperatura wody przy powierzchni i oscylacja północnoatlantycna, a mniej natężenie połowów w regionie: już na podstawie wykresu, można stwierdzić powiązanie ze sobą tych danych.
+
 Najsilniejsze korelacje wystąpiły pomiędzy parami zmiennych: (Dostępność planktonu Calanus helgolandicus gatunku 1; Zagęszczenie widłonogów), (Natężenie połowów w regionie; Łączne roczne natężenie połowów w regionie), (Dostępność planktonu Calanus helgolandicus gatunku 2; Zagęszczenie widłonogów gatunku 2), (Łączna liczba ryb złowionych w ramach połowu; Łączne roczne natężenie połowów w regionie). Oznacza to, że najprawdopodobniej pozbycie się jednej ze zmiennych z każdej z par pozwoliłoby na uproszczenie modelu, redukcję efektu przeuczenia i skrócenie czasu uczenia.
+
+Stworzono dwa regresory. Pierwszym jest rozwiązanie podstawowe, czyli regresja liniowa, która osiągnęła trafność na poziomie 35%. Drugi został wytrenowany z wykorzystaniem Generalized Boosted Regression Modelling (GBM) z 10-krotną walidacją krzyżową, a maksymalną trafnością była wartość oscylująca wokół 51%.
+
+W latach 1958 - 1978 można zauważyć stabilny wzrost rozmiaru śledzia. W okolicy roku 1978 śledź osiągał swoje najwieksze rozmiary tj. ok. 27,2 cm. Jednakże w po roku 1978 zanotowano kilka gwałtownych spadków długości śledzia. Ostatecznie długość śledzia wyraźnie spadała aż do roku 2018, do poziomu ok 23,5cm. 
+
+W wyniku przeprowadzone analizy okazało się, że najlepsze dopasowanie modelu osiągane jest dla ... zmiennych. Najistotniejszymi zmiennymi w modelu okazały się ..., ..., ..., ..., ....
 
 # Kod i wyniki analizy
 
@@ -70,7 +77,7 @@ library(tidyverse)
 ```
 
 ```
-## ── Attaching packages ──────────────────────────────────────────────────── tidyverse 1.3.0 ──
+## ── Attaching packages ─────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
 ```
 
 ```
@@ -80,7 +87,7 @@ library(tidyverse)
 ```
 
 ```
-## ── Conflicts ─────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## ── Conflicts ────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
 ```
@@ -310,7 +317,7 @@ summary(herrings)
 ##  Max.   :14.73   Max.   :35.61   Max.   :12.000   Max.   : 5.08000
 ```
 
-W zbiorze mamy 52581 wpisów, zawierających 15 kolumn. Rozkład wartości i najważniejsze statystyki przedstawia wynik wywołania funkcji summary.
+W zbiorze mamy 52581 wpisów, zawierających 15 kolumn. Rozkład wartości i najważniejsze statystyki przedstawia wynik wywołania funkcji summary. Jedyną zmienną, która przyjmuje wartości ujemne jest oscylacja północnoatlantycka.
 
 ## Szczegółowa analiza wartości atrybutów
 
@@ -320,7 +327,7 @@ ggplot(herrings, aes(x=length)) + geom_histogram(binwidth=1, colour="black", fil
 
 ![](SkibaJaniszewski_files/figure-html/detailed_analysis1-1.png)<!-- -->
 
-Histogram rozkładu długości w zbiorze.
+Histogram rozkładu długości w zbiorze. Minimalna wartość wynosi 19cm, maksymalna 32,5cm.
 
 ```r
 herrings_sst <- herrings %>%
@@ -427,7 +434,7 @@ Inne spostrzeżenia:
 
 
 ```r
-corrgram(herrings[, -1], order=TRUE, lower.panel=panel.shade,
+corrgram(herrings, order=TRUE, lower.panel=panel.shade,
          upper.panel=panel.cor, text.panel=panel.txt,
          main="Herrings - Variables Correlations")
 ```
@@ -435,6 +442,10 @@ corrgram(herrings[, -1], order=TRUE, lower.panel=panel.shade,
 ![](SkibaJaniszewski_files/figure-html/correlations-1.png)<!-- -->
 
 ## Animacja
+
+Animacja pokazuje jak na przestrzeniu 60 lat zmieniał się rozmiar trzyletniego śledzia oceanicznego wyławianego w Europie.
+Można zauważyć, iż od 1958 do ok. 1978 roku długość śledzia wzrastała, by w roku 1978 osiągnąć swoją maksymalną wartość tj. ok 27,2cm. Następnie odnotowano trzy istotne spadki długości śledzia w okolicy lat 1984, 1990 i 1997. Długośc ta długość ta systematycznie spadała, by w 2018 roku osiągnąć wartość ok 23,5cm.
+
 
 ### Przygotowanie danych
 
@@ -445,7 +456,7 @@ herrings_animation <-
   select(yearn, length) %>%
   group_by(yearn) %>%
   summarize(length = mean(length))%>%
-  mutate(yearn=ceiling(yearn/(max(yearn)/60)))
+  mutate(yearn=(2018 - (60 - ceiling(yearn/(max(yearn)/60)))))
 ```
 
 ### Stworzenie animacji
@@ -718,6 +729,10 @@ rsq(regLength, test$length)
 
 Trafność klasyfikacji w przypadkach zaokrąglania predykcji zmiennoprzecinkowych do liczb całkowitych oraz braku zaokrąglania.
 ## Analiza ważności atrybutów
+Analiza ważności atrybutów została przeprowadzona z użyciem metody walidacji krzyżowej. Na podstawie wyników analizy można zauważyć, że najlepsze dopasowanie do danych (R^2) jest osiągnięte, gdy model posiada ... zmiennych. Natomiast najmniejszy RMSE jest osiągany przy zastosowniu ... zmiennych. 
+Ponadto, najistotniejszymi zmiennymi w modelu okazały się ..., ..., ..., ..., ....
+
+
 
 ```r
 ctrl <- rfeControl(functions = lmFuncs,

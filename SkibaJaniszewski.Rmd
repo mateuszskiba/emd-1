@@ -11,7 +11,11 @@ output:
 
 ## Podsumowanie analizy
 
+Histogram długości śledzia w zależności od liczby ryb jest bliski rozkładowi normalnemu. Po zwizualizowaniu pozostałych zmiennych od długości widać, że zależności wykazują głównie temperatura wody przy powierzchni i oscylacja północnoatlantycna, a mniej natężenie połowów w regionie: już na podstawie wykresu, można stwierdzić powiązanie ze sobą tych danych.
+
 Najsilniejsze korelacje wystąpiły pomiędzy parami zmiennych: (Dostępność planktonu Calanus helgolandicus gatunku 1; Zagęszczenie widłonogów), (Natężenie połowów w regionie; Łączne roczne natężenie połowów w regionie), (Dostępność planktonu Calanus helgolandicus gatunku 2; Zagęszczenie widłonogów gatunku 2), (Łączna liczba ryb złowionych w ramach połowu; Łączne roczne natężenie połowów w regionie). Oznacza to, że najprawdopodobniej pozbycie się jednej ze zmiennych z każdej z par pozwoliłoby na uproszczenie modelu, redukcję efektu przeuczenia i skrócenie czasu uczenia.
+
+Stworzono dwa regresory. Pierwszym jest rozwiązanie podstawowe, czyli regresja liniowa, która osiągnęła trafność na poziomie 35%. Drugi został wytrenowany z wykorzystaniem Generalized Boosted Regression Modelling (GBM) z 10-krotną walidacją krzyżową, a maksymalną trafnością była wartość oscylująca wokół 51%.
 
 W latach 1958 - 1978 można zauważyć stabilny wzrost rozmiaru śledzia. W okolicy roku 1978 śledź osiągał swoje najwieksze rozmiary tj. ok. 27,2 cm. Jednakże w po roku 1978 zanotowano kilka gwałtownych spadków długości śledzia. Ostatecznie długość śledzia wyraźnie spadała aż do roku 2018, do poziomu ok 23,5cm. 
 
@@ -69,14 +73,14 @@ dim(herrings)
 summary(herrings)
 ```
 
-W zbiorze mamy 52581 wpisów, zawierających 15 kolumn. Rozkład wartości i najważniejsze statystyki przedstawia wynik wywołania funkcji summary.
+W zbiorze mamy 52581 wpisów, zawierających 15 kolumn. Rozkład wartości i najważniejsze statystyki przedstawia wynik wywołania funkcji summary. Jedyną zmienną, która przyjmuje wartości ujemne jest oscylacja północnoatlantycka.
 
 ## Szczegółowa analiza wartości atrybutów
 ```{R detailed_analysis1}
 ggplot(herrings, aes(x=length)) + geom_histogram(binwidth=1, colour="black", fill="white")
 ```
 
-Histogram rozkładu długości w zbiorze.
+Histogram rozkładu długości w zbiorze. Minimalna wartość wynosi 19cm, maksymalna 32,5cm.
 ```{R detailed_analysis2}
 herrings_sst <- herrings %>%
   group_by(sst) %>%
@@ -279,7 +283,7 @@ Ponadto, najistotniejszymi zmiennymi w modelu okazały się ..., ..., ..., ..., 
 
 
 ```{R variables_importance}
-ctrl <- rfeControl(functions = rfFuncs,
+ctrl <- rfeControl(functions = lmFuncs,
                    method = "repeatedcv",
                    repeats = 10,
                    verbose = FALSE)
