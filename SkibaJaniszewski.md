@@ -19,7 +19,7 @@ Stworzono dwa regresory. Pierwszym jest rozwiązanie podstawowe, czyli regresja 
 
 W latach 1958 - 1978 można zauważyć stabilny wzrost rozmiaru śledzia. W okolicy roku 1978 śledź osiągał swoje najwieksze rozmiary tj. ok. 27,2 cm. Jednakże w po roku 1978 zanotowano kilka gwałtownych spadków długości śledzia. Ostatecznie długość śledzia wyraźnie spadała aż do roku 2018, do poziomu ok 23,5cm. 
 
-W wyniku przeprowadzone analizy okazało się, że najlepsze dopasowanie modelu osiągane jest dla 5 zmiennych. Najistotniejszymi zmiennymi w modelu okazały się: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody,  dostępność planktonu Calanus finmarchicus gat. 1.
+W wyniku przeprowadzone analizy okazało się, że najistotniejszymi zmiennymi w modelu są: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody,  dostępność planktonu Calanus finmarchicus gat. 1.
 
 # Kod i wyniki analizy
 
@@ -730,8 +730,7 @@ rsq(regLength, test$length)
 Trafność klasyfikacji w przypadkach zaokrąglania predykcji zmiennoprzecinkowych do liczb całkowitych oraz braku zaokrąglania.
 
 ## Analiza ważności atrybutów
-Analiza ważności atrybutów została przeprowadzona z użyciem metody walidacji krzyżowej. Najmniejszy RMSE jest osiągany przy zastosowaniu 5 zmiennych. 
-Ponadto, najistotniejszymi zmiennymi w modelu okazały się: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody,  dostępność planktonu Calanus finmarchicus gat. 1.
+Analiza ważności atrybutów została przeprowadzona z użyciem metody walidacji krzyżowej. Okazało się, że najistotniejszymi zmiennymi w modelu są: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody,  dostępność planktonu Calanus finmarchicus gat. 1.
 
 
 

@@ -392,7 +392,7 @@ summary {
 <p>Najsilniejsze korelacje wystąpiły pomiędzy parami zmiennych: (Dostępność planktonu Calanus helgolandicus gatunku 1; Zagęszczenie widłonogów), (Natężenie połowów w regionie; Łączne roczne natężenie połowów w regionie), (Dostępność planktonu Calanus helgolandicus gatunku 2; Zagęszczenie widłonogów gatunku 2), (Łączna liczba ryb złowionych w ramach połowu; Łączne roczne natężenie połowów w regionie). Oznacza to, że najprawdopodobniej pozbycie się jednej ze zmiennych z każdej z par pozwoliłoby na uproszczenie modelu, redukcję efektu przeuczenia i skrócenie czasu uczenia.</p>
 <p>Stworzono dwa regresory. Pierwszym jest rozwiązanie podstawowe, czyli regresja liniowa, która osiągnęła trafność na poziomie 35%. Drugi został wytrenowany z wykorzystaniem Generalized Boosted Regression Modelling (GBM) z 10-krotną walidacją krzyżową, a maksymalną trafnością była wartość oscylująca wokół 51%.</p>
 <p>W latach 1958 - 1978 można zauważyć stabilny wzrost rozmiaru śledzia. W okolicy roku 1978 śledź osiągał swoje najwieksze rozmiary tj. ok. 27,2 cm. Jednakże w po roku 1978 zanotowano kilka gwałtownych spadków długości śledzia. Ostatecznie długość śledzia wyraźnie spadała aż do roku 2018, do poziomu ok 23,5cm.</p>
-<p>W wyniku przeprowadzone analizy okazało się, że najlepsze dopasowanie modelu osiągane jest dla 5 zmiennych. Najistotniejszymi zmiennymi w modelu okazały się: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody, dostępność planktonu Calanus finmarchicus gat. 1.</p>
+<p>W wyniku przeprowadzone analizy okazało się, że najistotniejszymi zmiennymi w modelu są: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody, dostępność planktonu Calanus finmarchicus gat. 1.</p>
 </div>
 <div id="kod-i-wyniki-analizy" class="section level1">
 <h1>Kod i wyniki analizy</h1>
@@ -873,7 +873,7 @@ confusionMatrix(data = factor(regLength, levels=min(regLength):max(regLength)),
 </div>
 <div id="analiza-ważności-atrybutów" class="section level2">
 <h2>Analiza ważności atrybutów</h2>
-<p>Analiza ważności atrybutów została przeprowadzona z użyciem metody walidacji krzyżowej. Najmniejszy RMSE jest osiągany przy zastosowaniu 5 zmiennych. Ponadto, najistotniejszymi zmiennymi w modelu okazały się: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody, dostępność planktonu Calanus finmarchicus gat. 1.</p>
+<p>Analiza ważności atrybutów została przeprowadzona z użyciem metody walidacji krzyżowej. Okazało się, że najistotniejszymi zmiennymi w modelu są: łączne roczne natężenie połowów w regionie, natężenie połowów w regionie, poziom zasolenia wody, temperatura przy powierzchni wody,  dostępność planktonu Calanus finmarchicus gat. 1.</p>
 <pre class="r"><code>ctrl &lt;- rfeControl(functions = lmFuncs,
                    method = &quot;repeatedcv&quot;,
                    repeats = 10,
